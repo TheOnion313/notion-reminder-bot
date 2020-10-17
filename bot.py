@@ -38,7 +38,10 @@ notify.start()
 
 
 @bot.command()
-async def add(ctx, given_name, time, message):
+async def add(ctx, given_name=None, time=None, message=None):
+    if given_name == None or time == None or message == None:
+        await ctx.send('Not all parameters required were given')
+        return
     wanted_channel_id = -1
     for channel in ctx.guild.channels:
         if channel.name == given_name:
@@ -60,6 +63,17 @@ async def remove(ctx, time_stamp):
             notifcations.remove(n)
             await ctx.send(f'Removed notification\n{to_str(n)}')
             return
+
+@bot.command()
+async def list(ctx):
+    msg = ''
+    for n in notifcations:
+        msg += to_str(n)+'\n\n'
+
+    if len(msg) == 0:
+        await ctx.send('No notifications :(')
+        return
+    await ctx.send(msg)
 
 
 bot.run(open('token.txt', 'r').readline())
