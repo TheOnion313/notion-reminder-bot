@@ -14,7 +14,8 @@ def add_notification(send_time: str, message: str, channel_id: int):
 def to_str(n: dict):
     return f'Channel: {bot.get_channel(n["target_channel_id"]).mention}\n'\
            f'Time: {str(n["send_hour"]) + ":" + str(n["send_minute"])}\n'\
-           f'Message content: "{n["message"]}"'
+           f'Message content: "{n["message"]}"\n' \
+           f'Time stamp: {n["time_stamp"]}'
 
 
 bot = commands.Bot('--')
@@ -57,7 +58,7 @@ async def remove(ctx, time_stamp):
     for n in notifcations:
         if n['time_stamp'] == int(time_stamp):
             notifcations.remove(n)
-            await ctx.send(f'Removed notificatoin {to_str(n)}')
+            await ctx.send(f'Removed notification\n{to_str(n)}')
             return
 
 
