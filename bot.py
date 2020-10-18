@@ -33,7 +33,7 @@ def add_notification(send_time: str, message: str, channel_id: int, author: int)
 
 def to_str(n: dict):
     return f'Channel: {bot.get_channel(n["target_channel_id"]).mention}\n'\
-           f'Time: {str(n["send_hour"]) + ":" + str(n["send_minute"])}\n'\
+           f'Time: {str(n["send_hour"]) + ":" + str(n["send_minute"] if n["send_minute"] > 9 else "0" + str(n["send_minute"]))}\n'\
            f'Message content: "{n["message"]}"\n'\
            f'Time stamp: {n["time_stamp"]}\n'\
            f'Author: {bot.get_user(n["author"]).mention}'
@@ -102,7 +102,7 @@ async def remove(ctx, time_stamp):
             return
     for n in notifications:
         if n['time_stamp'] == int(time_stamp):
-            if n['author'] == ctx.message.author.id or ctx.message.author.server_permissions.administrator:
+            if n['author'] == ctx.message.author.id or ctx.message.author.guild_permissions.administrator:
                 notifications.remove(n)
                 await ctx.send(f'Removed notification\n{to_str(n)}')
                 backup()
