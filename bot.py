@@ -42,17 +42,19 @@ async def add(ctx, given_name=None, time=None, message=None):
     if given_name == None or time == None or message == None:
         await ctx.send('Not all parameters required were given')
         return
-    wanted_channel_id = -1
+
+    valid = False
+    channel_id = given_name[2:-1]
     for channel in ctx.guild.channels:
-        if channel.name == given_name:
-            wanted_channel_id = channel.id
+        if channel_id == str(channel.id):
+            valid = True
+    if not valid:
+        await ctx.message(f'{ctx.message.autor.mention}\nChannel #{given_name} does not exist')
+        return
     if len(time) != 5 or time[2] != ':' or not all([i in '0123456789' for i in time[:2] + time[3:]]):
         await ctx.send('Time format invalid.')
         return
-    if wanted_channel_id == -1:
-        await ctx.send(f"Channel #{given_name} doesn't exist")
-        return
-    add_notification(time, message, wanted_channel_id)
+    add_notification(time, message, int(channel_id))
     await ctx.send(f'Added notification:\n{to_str(notifcations[-1])}')
 
 
@@ -74,6 +76,11 @@ async def list(ctx):
         await ctx.send('No notifications :(')
         return
     await ctx.send(msg)
+
+@bot.command()
+async def msg(ctx, channel=None):
+    print(channel[2:-1])
+    print(channel)
 
 
 bot.run(open('token.txt', 'r').readline())
