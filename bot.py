@@ -62,8 +62,7 @@ async def notify():
     for n in notifications:
         if time.hour == n['send_hour'] and time.minute == n['send_minute']:
             message_channel = bot.get_channel(n['target_channel_id'])
-            print(f"Got channel {message_channel}")
-            await message_channel.send(f"{bot.get_user(n['author']).mention} is reminding you to:\n{n['message']}")
+            await message_channel.send(f"{bot.get_user(n['author']).mention} is reminding you:\n{n['message']}")
 
 
 notify.start()
@@ -87,8 +86,6 @@ async def add(ctx, given_name=None, time=None, message=None):
         await ctx.send('Time format invalid.')
         return
 
-
-    print(ctx.message.author)
     add_notification(time, message, int(channel_id), ctx.message.author.id)
     await ctx.send(f'Added notification:\n{to_str(notifications[-1])}')
     backup()
