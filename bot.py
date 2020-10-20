@@ -37,7 +37,8 @@ def to_str(n: dict):
            f'Time: {str(n["send_hour"]) + ":" + str(n["send_minute"] if n["send_minute"] > 9 else "0" + str(n["send_minute"]))}\n'\
            f'Message content: "{n["message"]}"\n'\
            f'Time stamp: {n["time_stamp"]}\n'\
-           f'Author: {bot.get_user(n["author"]).mention}\n'
+           f'Author: {bot.get_user(n["author"]).mention}\n' \
+           f'Timezone: {timezones[bot.get_channel(n["channel_id"]).guild.id]}'
 
 
 def backup():
