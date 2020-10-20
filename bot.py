@@ -24,6 +24,7 @@ ________________________________________________________________________________
 -----------------------------------------------------------------------------------------
 '''
 
+DEFAULT_TIMEZONE = 'UTC'
 
 def add_notification(send_time: str, message: str, channel_id: int, author: int):
     send_hours, send_minutes = [int(i) for i in send_time.split(':')]
@@ -38,7 +39,7 @@ def to_str(n: dict):
            f'Message content: "{n["message"]}"\n'\
            f'Time stamp: {n["time_stamp"]}\n'\
            f'Author: {bot.get_user(n["author"]).mention}\n' \
-           f'Timezone: {timezones[bot.get_channel(n["channel_id"]).guild.id]}'
+           f'Timezone: {timezones[bot.get_channel(n["channel_id"]).guild.id] if bot.get_channel(n["channel_id"]).guild.id in timezones.keys() else DEFAULT_TIMEZONE}'
 
 
 def backup():
@@ -64,7 +65,7 @@ load()
 async def notify():
     await bot.wait_until_ready()
     for n in notifications:
-        time = datetime.now(pytz.timezone(timezones[bot.get_channel(n['channel_id']).guild.id]))
+        time = datetime.now(pytz.timezone(timezones[bot.get_channel(n['channel_id']).guild.id] if bot.get_channel(n['channel_id']).guild.id in timezones.keys() else DEFAULT_TIMEZONE))
         if time.hour == n['send_hour'] and time.minute == n['send_minute']:
             message_channel = bot.get_channel(n['channel_id'])
             await message_channel.send(f"{bot.get_user(n['author']).mention} is reminding you:\n{n['message']}")
@@ -130,7 +131,7 @@ async def list(ctx):
 @bot.command()
 async def timezone(ctx, zone=None):
     if zone == None:
-        await ctx.send(f'This guild\'s timezone: {timezones[ctx.message.guild.id] if ctx.message.guild.id in timezones.keys() else "No timezone set, default is UTC"}')
+        await ctx.send(f'This guild\'s timezone: {timezones[ctx.message.guild.id] if ctx.message.guild.id in timezones.keys() else f"No timezone set, default is {DEFAULT_TIMEZONE}"}')
         return
     if not ctx.message.author.guild_permissions.administrator:
         await ctx.send(f'{ctx.message.author.mention}\n'
