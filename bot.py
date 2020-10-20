@@ -66,7 +66,7 @@ load()
 async def notify():
     await bot.wait_until_ready()
     for n in notifications:
-        time = datetime.now(pytz.timezone(n['timezone']))
+        time = datetime.now(pytz.timezone(timezones[bot.get_channel(n['channel_id']).guild.id]))
         if time.hour == n['send_hour'] and time.minute == n['send_minute']:
             message_channel = bot.get_channel(n['channel_id'])
             await message_channel.send(f"{bot.get_user(n['author']).mention} is reminding you:\n{n['message']}")
