@@ -9,14 +9,14 @@ from discord.ext import commands, tasks
 Notification dictionary format:
 _________________________________________________________________________________________
 |key               |description                                                         |
-|---------------------------------------------------------------------------------------|
+|_______________________________________________________________________________________|
 |send_hour         | hour value of time to send notification                            |
 |---------------------------------------------------------------------------------------|
 |send_minute       | minute value of time to send notification                          |
 |---------------------------------------------------------------------------------------|
 |message           | content of notification message                                    |
 |---------------------------------------------------------------------------------------|
-|target_channel_id | ID of target channel to notify in                                  |
+|channel_id | ID of target channel to notify in                                  |
 |---------------------------------------------------------------------------------------|
 |time_stamp        | time stamp of notification creation, used to Identify notifications|
 |---------------------------------------------------------------------------------------|
@@ -30,12 +30,12 @@ ________________________________________________________________________________
 def add_notification(send_time: str, message: str, channel_id: int, author: int, timezone):
     send_hours, send_minutes = [int(i) for i in send_time.split(':')]
     notifications.append(
-        {'send_hour': send_hours, 'send_minute': send_minutes, 'message': message, 'target_channel_id': channel_id,
+        {'send_hour': send_hours, 'send_minute': send_minutes, 'message': message, 'channel_id': channel_id,
          'time_stamp': int(time.time()), 'author': author, 'timezone': timezone})
 
 
 def to_str(n: dict):
-    return f'Channel: {bot.get_channel(n["target_channel_id"]).mention}\n'\
+    return f'Channel: {bot.get_channel(n["channel_id"]).mention}\n'\
            f'Time: {str(n["send_hour"]) + ":" + str(n["send_minute"] if n["send_minute"] > 9 else "0" + str(n["send_minute"]))}\n'\
            f'Message content: "{n["message"]}"\n'\
            f'Time stamp: {n["time_stamp"]}\n'\
@@ -68,7 +68,7 @@ async def notify():
     for n in notifications:
         time = datetime.now(pytz.timezone(n['timezone']))
         if time.hour == n['send_hour'] and time.minute == n['send_minute']:
-            message_channel = bot.get_channel(n['target_channel_id'])
+            message_channel = bot.get_channel(n['channel_id'])
             await message_channel.send(f"{bot.get_user(n['author']).mention} is reminding you:\n{n['message']}")
 
 
@@ -120,7 +120,8 @@ async def remove(ctx, time_stamp):
 async def list(ctx):
     msg = ''
     for n in notifications:
-        msg += to_str(n) + '\n\n'
+        if bot.get_channel(n['channel_id']).guild.id == ctx.message.guild.id:
+            msg += to_str(n) + '\n\n'
 
     if len(msg) == 0:
         await ctx.send('No notifications :(')
