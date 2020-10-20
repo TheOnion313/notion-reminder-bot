@@ -16,22 +16,20 @@ ________________________________________________________________________________
 |---------------------------------------------------------------------------------------|
 |message           | content of notification message                                    |
 |---------------------------------------------------------------------------------------|
-|channel_id | ID of target channel to notify in                                  |
+|channel_id | ID of target channel to notify in                                         |
 |---------------------------------------------------------------------------------------|
 |time_stamp        | time stamp of notification creation, used to Identify notifications|
 |---------------------------------------------------------------------------------------|
 |author            | creator of notification, only he and admins can remove notification|
-|---------------------------------------------------------------------------------------|
-|timezone          | timezone used in notification's guild                              |
 -----------------------------------------------------------------------------------------
 '''
 
 
-def add_notification(send_time: str, message: str, channel_id: int, author: int, timezone):
+def add_notification(send_time: str, message: str, channel_id: int, author: int):
     send_hours, send_minutes = [int(i) for i in send_time.split(':')]
     notifications.append(
         {'send_hour': send_hours, 'send_minute': send_minutes, 'message': message, 'channel_id': channel_id,
-         'time_stamp': int(time.time()), 'author': author, 'timezone': timezone})
+         'time_stamp': int(time.time()), 'author': author})
 
 
 def to_str(n: dict):
@@ -39,8 +37,7 @@ def to_str(n: dict):
            f'Time: {str(n["send_hour"]) + ":" + str(n["send_minute"] if n["send_minute"] > 9 else "0" + str(n["send_minute"]))}\n'\
            f'Message content: "{n["message"]}"\n'\
            f'Time stamp: {n["time_stamp"]}\n'\
-           f'Author: {bot.get_user(n["author"]).mention}\n' \
-           f'Timezone: {n["timezone"]}'
+           f'Author: {bot.get_user(n["author"]).mention}\n'
 
 
 def backup():
@@ -93,7 +90,7 @@ async def add(ctx, given_name=None, time=None, message=None):
         await ctx.send('Time format invalid.')
         return
 
-    add_notification(time, message, int(channel_id), ctx.message.author.id, timezones[ctx.message.guild.id] if ctx.message.guild.id in timezones.keys() else 'UTC')
+    add_notification(time, message, int(channel_id), ctx.message.author.id)
     await ctx.send(f'Added notification:\n{to_str(notifications[-1])}')
     backup()
 
