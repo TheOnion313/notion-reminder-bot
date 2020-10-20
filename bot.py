@@ -39,7 +39,8 @@ def to_str(n: dict):
            f'Time: {str(n["send_hour"]) + ":" + str(n["send_minute"] if n["send_minute"] > 9 else "0" + str(n["send_minute"]))}\n'\
            f'Message content: "{n["message"]}"\n'\
            f'Time stamp: {n["time_stamp"]}\n'\
-           f'Author: {bot.get_user(n["author"]).mention}'
+           f'Author: {bot.get_user(n["author"]).mention}\n' \
+           f'Timezone: {n["timezone"]}'
 
 
 def backup():
@@ -65,7 +66,7 @@ load()
 async def notify():
     await bot.wait_until_ready()
     for n in notifications:
-        time = datetime.now(n['timezone'])
+        time = datetime.now(pytz.timezone(n['timezone']))
         if time.hour == n['send_hour'] and time.minute == n['send_minute']:
             message_channel = bot.get_channel(n['target_channel_id'])
             await message_channel.send(f"{bot.get_user(n['author']).mention} is reminding you:\n{n['message']}")
@@ -92,7 +93,7 @@ async def add(ctx, given_name=None, time=None, message=None):
         await ctx.send('Time format invalid.')
         return
 
-    add_notification(time, message, int(channel_id), ctx.message.author.id, timezones[ctx.message.guild] if ctx.message.guild in timezones.keys() else 'UTC')
+    add_notification(time, message, int(channel_id), ctx.message.author.id, timezones[ctx.message.guild.id] if ctx.message.guild.id in timezones.keys() else 'UTC')
     await ctx.send(f'Added notification:\n{to_str(notifications[-1])}')
     backup()
 
@@ -128,17 +129,21 @@ async def list(ctx):
 
 
 @bot.command()
-async def timezone(ctx, zone):
+async def timezone(ctx, zone=None):
+    if zone == None:
+        await ctx.send(f'This guild\'s timezone: {timezones[ctx.message.guild.id] if ctx.message.guild.id in timezones.keys() else "No timezone set, default is UTC"}')
+        return
     if not ctx.message.author.guild_permissions.administrator:
         await ctx.send(f'{ctx.message.author.mention}\n'
                                f'Only administrators can activate this command.')
         return
     for i in pytz.all_timezones:
         if zone.lower() == i.lower():
-            guild = ctx.message.guild
+            guild = ctx.message.guild.id
             timezones[guild] = i
             await ctx.send(f'{ctx.message.author.mention}\n'
                                f'The timezone has been set!')
+            backup()
             return
     else:
         contains = ''
