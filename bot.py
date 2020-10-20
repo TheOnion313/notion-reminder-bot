@@ -2,6 +2,7 @@ import pickle
 import time
 from datetime import datetime
 
+import pytz
 from discord.ext import commands, tasks
 
 '''
@@ -20,6 +21,8 @@ ________________________________________________________________________________
 |time_stamp        | time stamp of notification creation, used to Identify notifications|
 |---------------------------------------------------------------------------------------|
 |author            | creator of notification, only he and admins can remove notification|
+|---------------------------------------------------------------------------------------|
+|timezone          | timezone used in notification's guild                              |
 -----------------------------------------------------------------------------------------
 '''
 
@@ -41,13 +44,16 @@ def to_str(n: dict):
 
 def backup():
     with open('backup.p', 'wb') as f:
-        pickle.dump(notifications, f)
+        l = {'notifications': notifications, 'timezones': timezones}
+        pickle.dump(l, f)
 
 
 def load():
-    global notifications
+    global notifications, timezones
     with open('backup.p', 'rb') as f:
-        notifications = pickle.load(f)
+        l = pickle.load(f)
+        timezones = l['timezones']
+        notifications = l['notifications']
         backup()
 
 
@@ -119,5 +125,36 @@ async def list(ctx):
         await ctx.send('No notifications :(')
         return
     await ctx.send(msg)
+
+
+@bot.command()
+async def timezone(ctx, zone):
+    if not ctx.message.author.guild_permissions.administrator:
+        await ctx.send(f'{ctx.message.author.mention}\n'
+                               f'Only administrators can activate this command.')
+        return
+    if zone.lower() in [i.lower() for i in pytz.all_timezones]:
+        guild = ctx.message.guild
+        timezones[guild] = zone
+        await ctx.send(f'{ctx.message.author.mention}\n'
+                               f'The timezone has been set!')
+    else:
+        contains = ''
+        for tz in pytz.all_timezones:
+            split = tz.split('/')
+            if zone.lower() in [i.lower() for i in split]:
+                contains += tz + '\n'
+
+        if len(contains) == 0:
+            await ctx.send(f'{ctx.message.author.mention}\n'
+                           f'There is no timezone related to your input.')
+            return
+
+        await ctx.send(f'{ctx.message.author.mention}\n'
+                               f'Timezones related to your input:\n'
+                               f'{contains}\n'
+                               f'Please choose one of the above and call the command again.')
+
+
 
 bot.run(open('token.txt', 'r').readline())
